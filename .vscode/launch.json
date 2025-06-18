@@ -7,19 +7,28 @@
         {
             "name": "dalui",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "args" : [
+                "--dart-define-from-file=local-conf.json",
+            ]
         },
         {
             "name": "dalui (profile mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "args" : [
+                "--dart-define-from-file=local-conf.json",
+            ]
         },
         {
             "name": "dalui (release mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "args" : [
+                "--dart-define-from-file=local-conf.json",
+            ]
         }
     ]
 }

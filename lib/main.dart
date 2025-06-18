@@ -20,11 +20,11 @@ class MyApp extends StatelessWidget {
       'HOST',
       defaultValue: 'localhost',
     );
-    final port = const int.fromEnvironment('PORT', defaultValue: 8081);
-    final projectId = const String.fromEnvironment(
-      'PROJECT_ID',
-      defaultValue: 'nemesishub',
-    );
+    final port = const int.fromEnvironment('PORT', defaultValue: 8080);
+    final projectId = const String.fromEnvironment('PROJECT_ID');
+    if (projectId.isEmpty) {
+      throw ArgumentError('The environment variable PROJECT_ID must be set');
+    }
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(

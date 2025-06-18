@@ -1,0 +1,64 @@
+{
+    "release": {
+        "branches": [
+            "main",
+            "develop"
+        ],
+        "plugins": [
+            "@semantic-release/commit-analyzer",
+            "@semantic-release/release-notes-generator",
+            "@semantic-release/github",
+            "@semantic-release/git",
+            "@semantic-release/changelog",
+            [
+                "semantic-release-replace-plugin",
+                {
+                    "replacements": [
+                        {
+                            "files": [
+                                "pubspec.yaml"
+                            ],
+                            "from": "0[.]0[.]1[+]local",
+                            "to": "${nextRelease.version}",
+                            "countMatches": true,
+                            "results": [
+                                {
+                                    "file": "pubspec.yaml",
+                                    "hasChanged": true,
+                                    "numMatches": 1,
+                                    "numReplacements": 1
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            [
+                "@semantic-release/exec",
+                {
+                    "prepareCmd": "flutter build web --release"
+                }
+            ],
+            [
+                "@codedependant/semantic-release-docker",
+                {
+                    "dockerImage": "dalui",
+                    "dockerProject": "vexdev"
+                }
+            ]
+        ]
+    },
+    "dependencies": {
+        "@codedependant/semantic-release-docker": "latest",
+        "@semantic-release/changelog": "latest",
+        "@semantic-release/commit-analyzer": "latest",
+        "@semantic-release/exec": "latest",
+        "@semantic-release/git": "latest",
+        "@semantic-release/github": "latest",
+        "@semantic-release/release-notes-generator": "latest",
+        "semantic-release-replace-plugin": "latest"
+    },
+    "devDependencies": {
+        "semantic-release": "^24.2.5"
+    }
+}
