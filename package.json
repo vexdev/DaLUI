@@ -43,7 +43,11 @@
                 "@codedependant/semantic-release-docker",
                 {
                     "dockerImage": "dalui",
-                    "dockerProject": "vexdev"
+                    "dockerProject": "vexdev",
+                    "dockerPlatform": [
+                        "linux/amd64",
+                        "linux/arm64"
+                    ]
                 }
             ]
         ]
