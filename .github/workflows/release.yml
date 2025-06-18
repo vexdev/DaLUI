@@ -29,6 +29,8 @@ jobs:
         with:
           channel: 'stable'
       - run: flutter pub get
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Release with semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
