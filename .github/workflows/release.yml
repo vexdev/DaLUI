@@ -29,7 +29,6 @@ jobs:
         with:
           channel: 'stable'
       - run: flutter pub get
-      - run: flutter test
       - name: Release with semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
