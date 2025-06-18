@@ -1,5 +1,6 @@
-import 'package:dalui/net/model/batch.dart';
-import 'package:dalui/net/model/query.dart';
+import 'package:dalui/net/model/datastore/datastore_batch.dart';
+import 'package:dalui/net/model/datastore/datastore_commit.dart';
+import 'package:dalui/net/model/datastore/datastore_query.dart';
 import 'package:dio/dio.dart';
 
 class DatastoreClient {
@@ -11,17 +12,22 @@ class DatastoreClient {
     _dio.options.baseUrl = 'http://$host:$port/v1/projects/';
   }
 
-  Future<Iterable<EntityResult>> getKinds() async => runQuery("SELECT *");
+  Future<Iterable<DatastoreEntityResult>> getKinds() async =>
+      runQuery("SELECT *");
 
-  Future<Iterable<EntityResult>> getAllEntities(String kind) =>
+  Future<Iterable<DatastoreEntityResult>> getAllEntities(String kind) =>
       runQuery("SELECT * FROM $kind");
 
-  Future<Iterable<EntityResult>> runQuery(String query) async {
+  Future<Iterable<DatastoreEntityResult>> runQuery(String query) async {
     final rs = await _dio.post(
       '$_projId:runQuery',
-      data: QueryRequest.def(query).toJson(),
+      data: DatastoreQueryRequest.def(query).toJson(),
     );
-    final batch = BatchResponse.fromJson(rs.data);
-    return batch.batch.entityResults ?? <EntityResult>[];
+    final batch = DatastoreBatchResponse.fromJson(rs.data);
+    return batch.batch.entityResults ?? <DatastoreEntityResult>[];
+  }
+
+  Future<void> commit(DatastoreCommit commit) async {
+    await _dio.post('$_projId:commit', data: commit.toJson());
   }
 }

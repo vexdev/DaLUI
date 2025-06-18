@@ -1,4 +1,5 @@
 import 'package:dalui/feature/kind/kind_state.dart';
+import 'package:dalui/model/entity_key.dart';
 import 'package:dalui/net/datastore_error.dart';
 import 'package:dalui/repository/datastore_repository.dart';
 import 'package:dio/dio.dart';
@@ -75,5 +76,14 @@ class KindCubit extends Cubit<KindState> {
         ),
       );
     }
+  }
+
+  void deleteEntity(EntityKey entityKey) {
+    runOrError(() async {
+      await _datastoreRepository.delete([entityKey]);
+      if (_selectedKind != null) {
+        selectKind(_selectedKind!);
+      }
+    });
   }
 }

@@ -4,6 +4,7 @@ import 'package:dalui/feature/kind/kind_cubit.dart';
 import 'package:dalui/feature/kind/kind_state.dart';
 import 'package:dalui/model/entity.dart';
 import 'package:dalui/model/value.dart';
+import 'package:dalui/widget/confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -96,7 +97,7 @@ class _KindScreenState extends State<KindScreen> {
     if (state.entities.isEmpty) {
       return const Center(child: Text('No entities found.'));
     }
-    final columns = (["key"].followedBy(state.columns)).toList();
+    final columns = (["key", "actions"].followedBy(state.columns)).toList();
     return Expanded(
       child: SelectionArea(
         child: SingleChildScrollView(
@@ -149,6 +150,7 @@ class _KindScreenState extends State<KindScreen> {
     return TableRow(
       children: columns.map((column) {
         if (column == 'key') return _buildKeyCell(entity);
+        if (column == 'actions') return _buildActionsCell(entity);
         final value = entity.properties[column];
         if (value == null) {
           return Text(
@@ -168,6 +170,29 @@ class _KindScreenState extends State<KindScreen> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Text(keyName, style: const TextStyle(fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _buildActionsCell(Entity entity) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: () {
+            showConfirmationDialog(
+              context,
+              onConfirm: () {
+                context.read<KindCubit>().deleteEntity(entity.key!);
+              },
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: null, // TODO: Implement edit functionality
+        ),
+      ],
     );
   }
 

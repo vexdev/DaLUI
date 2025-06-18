@@ -2,7 +2,9 @@ import 'package:dalui/model/entity.dart';
 import 'package:dalui/model/entity_key.dart';
 import 'package:dalui/model/value.dart';
 import 'package:dalui/net/datastore_client.dart';
-import 'package:dalui/net/model/batch.dart';
+import 'package:dalui/net/model/datastore/datastore_commit.dart';
+import 'package:dalui/net/model/datastore/datastore_entity.dart';
+import 'package:dalui/net/model/datastore/datastore_key.dart';
 
 class DatastoreRepository {
   final DatastoreClient _datastoreClient;
@@ -27,9 +29,18 @@ class DatastoreRepository {
     final allEntries = await _datastoreClient.runQuery(gql);
     return allEntries.map((entityResult) => entityResult.entity.entity);
   }
+
+  Future<void> delete(Iterable<EntityKey> entities) async {
+    final deleteCommit = entities.map(
+      (key) => DatastoreMutation(delete: key.datastoreKey),
+    );
+    await _datastoreClient.commit(
+      DatastoreCommit(mutations: deleteCommit.toList()),
+    );
+  }
 }
 
-extension on Key {
+extension on DatastoreKey {
   EntityKey get entityKey => EntityKey(
     project: partitionId.projectId,
     namespace: partitionId.namespaceId,
@@ -40,14 +51,27 @@ extension on Key {
   );
 }
 
-extension on ResponseEntity {
+extension on EntityKey {
+  DatastoreKey get datastoreKey => DatastoreKey(
+    partitionId: DatastorePartitionId(
+      projectId: project,
+      namespaceId: namespace,
+      databaseId: database,
+    ),
+    path: path
+        .map((path) => DatastorePath(kind: path.kind, name: path.name))
+        .toList(),
+  );
+}
+
+extension on DatastoreEntity {
   Entity get entity => Entity(
     key: key?.entityKey,
     properties: properties.map((key, value) => MapEntry(key, value.value)),
   );
 }
 
-extension on PropertiesValue {
+extension on DatastorePropertiesValue {
   Value get value {
     if (stringValue != null) {
       return ValueString(stringValue!);
