@@ -7,9 +7,8 @@ class DatastoreClient {
   final _dio = Dio();
   final String _projId;
 
-  DatastoreClient(String host, int port, String projectId)
-    : _projId = projectId {
-    _dio.options.baseUrl = 'http://$host:$port/v1/projects/';
+  DatastoreClient(String host, String projectId) : _projId = projectId {
+    _dio.options.baseUrl = 'http://$host/v1/projects/';
   }
 
   Future<Iterable<DatastoreEntityResult>> getKinds() async =>
