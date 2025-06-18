@@ -20,10 +20,10 @@ This tool has been thought to be used in local development environments, where y
 - Supports both Firestore in datastore mode and legacy datastore emulator.
 
 # Running
-DaLUI runs as a docker container exposing the HTTP port 8699, you can run it with the following command:
+DaLUI runs as a docker container exposing the HTTP port 80, you can run it with the following command:
 
 ```bash
-docker run -p 8699:8699 -e PORT=8080 -e PROJECT_ID=your-project-id vexdev/dalui
+docker run -p 8699:80 -e PORT=8080 -e PROJECT_ID=your-project-id vexdev/dalui
 ```
 
 It can then be accessed at `http://localhost:8699`.
