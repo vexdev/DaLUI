@@ -2,36 +2,43 @@ import 'package:dalui/feature/kind/kind_state.dart';
 import 'package:dalui/model/entity_key.dart';
 import 'package:dalui/net/datastore_error.dart';
 import 'package:dalui/repository/datastore_repository.dart';
+import 'package:dalui/repository/localstore_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/web.dart';
 
 class KindCubit extends Cubit<KindState> {
   final DatastoreRepository _datastoreRepository;
+  final LocalstoreRepository _localstoreRepository;
   Set<String> _kinds = {};
-  String? _selectedKind;
   final Logger _logger = Logger();
 
-  KindCubit(this._datastoreRepository) : super(KindState.initial());
+  KindCubit(this._datastoreRepository, this._localstoreRepository)
+    : super(KindState.initial());
 
-  void reload() async {
+  void load() async {
     runOrError(() async {
       _kinds = await _datastoreRepository.getKinds();
       if (_kinds.isNotEmpty) {
-        selectKind(_kinds.first);
+        final storedKind = await _localstoreRepository.getSelectedKind();
+        selectKind(storedKind ?? _kinds.first);
       }
     });
   }
 
   void selectKind(String kind) async {
+    if (!_kinds.contains(kind)) {
+      _logger.w("Kind $kind not found in available kinds: $_kinds");
+      return;
+    }
     runOrError(() async {
-      _selectedKind = kind;
+      await _localstoreRepository.storeSelectedKind(kind);
       final entities = await _datastoreRepository.getAllEntities(kind);
       emit(
         KindState(
           kinds: _kinds.toList(),
           entities: entities.toList(),
-          selectedKind: _selectedKind,
+          selectedKind: kind,
         ),
       );
     });
@@ -44,7 +51,7 @@ class KindCubit extends Cubit<KindState> {
         KindState(
           kinds: _kinds.toList(),
           entities: entities.toList(),
-          selectedKind: _selectedKind,
+          selectedKind: state.selectedKind,
         ),
       );
     });
@@ -71,7 +78,7 @@ class KindCubit extends Cubit<KindState> {
         KindState(
           kinds: _kinds.toList(),
           entities: state.entities,
-          selectedKind: _selectedKind,
+          selectedKind: state.selectedKind,
           error: errorMessage,
         ),
       );
@@ -81,8 +88,8 @@ class KindCubit extends Cubit<KindState> {
   void deleteEntity(EntityKey entityKey) {
     runOrError(() async {
       await _datastoreRepository.delete([entityKey]);
-      if (_selectedKind != null) {
-        selectKind(_selectedKind!);
+      if (state.selectedKind != null) {
+        selectKind(state.selectedKind!);
       }
     });
   }

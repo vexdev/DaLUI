@@ -18,13 +18,15 @@ class KindScreen extends StatefulWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) {
     return BlocProvider(
-      create: (context) => KindCubit(context.read())..reload(),
+      create: (context) => KindCubit(context.read(), context.read())..load(),
       child: this,
     );
   }
 }
 
 class _KindScreenState extends State<KindScreen> {
+  String? selectedKind;
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<KindCubit, KindState>(
@@ -46,11 +48,7 @@ class _KindScreenState extends State<KindScreen> {
                           child: Text(kind),
                         );
                       }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          context.read<KindCubit>().selectKind(value);
-                        }
-                      },
+                      onChanged: _selectKind,
                     ),
                     const SizedBox(width: 8),
                     const Text('Or search with a GQL query:'),
@@ -208,5 +206,11 @@ class _KindScreenState extends State<KindScreen> {
       padding: const EdgeInsets.all(8.0),
       child: Text(value.readable),
     );
+  }
+
+  void _selectKind(String? kind) {
+    if (kind != null) {
+      context.read<KindCubit>().selectKind(kind);
+    }
   }
 }

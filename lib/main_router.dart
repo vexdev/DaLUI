@@ -8,6 +8,6 @@ class MainRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
-    AutoRoute(page: KindRoute.page, path: '/kind', initial: true),
+    AutoRoute(page: KindRoute.page, path: '/', initial: true),
   ];
 }
