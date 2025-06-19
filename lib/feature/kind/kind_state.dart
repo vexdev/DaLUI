@@ -6,16 +6,22 @@ class KindState {
   final String? selectedKind;
   final Set<String> columns;
   final String? error;
+  final bool isLoading;
 
   KindState({
     required this.kinds,
     this.selectedKind,
     this.entities = const [],
     this.error,
+    this.isLoading = false,
   }) : columns = getColumns(entities);
 
   static KindState initial() {
-    return KindState(kinds: []);
+    return KindState(kinds: [], isLoading: true);
+  }
+
+  static KindState empty() {
+    return KindState(kinds: [], entities: [], isLoading: false);
   }
 
   static Set<String> getColumns(List<Entity> entities) {

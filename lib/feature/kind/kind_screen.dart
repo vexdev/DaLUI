@@ -32,60 +32,62 @@ class _KindScreenState extends State<KindScreen> {
     return BlocBuilder<KindCubit, KindState>(
       builder: (context, state) {
         return Scaffold(
-          body: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
+          body: (state.isLoading)
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
                   children: [
-                    const Text('Select a kind:'),
-                    const SizedBox(width: 8),
-                    DropdownButton<String>(
-                      value: state.selectedKind,
-                      items: state.kinds.map((kind) {
-                        return DropdownMenuItem<String>(
-                          value: kind,
-                          child: Text(kind),
-                        );
-                      }).toList(),
-                      onChanged: _selectKind,
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          const Text('Select a kind:'),
+                          const SizedBox(width: 8),
+                          DropdownButton<String>(
+                            value: state.selectedKind,
+                            items: state.kinds.map((kind) {
+                              return DropdownMenuItem<String>(
+                                value: kind,
+                                child: Text(kind),
+                              );
+                            }).toList(),
+                            onChanged: _selectKind,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text('Or search with a GQL query:'),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              onSubmitted: (query) {
+                                if (query.isNotEmpty) {
+                                  context.read<KindCubit>().runQuery(query);
+                                }
+                              },
+                              decoration: InputDecoration(
+                                labelText: "GQL Query",
+                                prefixIcon: Icon(Icons.search),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    const Text('Or search with a GQL query:'),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        onSubmitted: (query) {
-                          if (query.isNotEmpty) {
-                            context.read<KindCubit>().runQuery(query);
-                          }
-                        },
-                        decoration: InputDecoration(
-                          labelText: "GQL Query",
-                          prefixIcon: Icon(Icons.search),
+                    if (state.error != null)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Card(
+                          color: Colors.red[100],
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              'Error: ${state.error}',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    _buildEntitiesList(state),
                   ],
                 ),
-              ),
-              if (state.error != null)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Card(
-                    color: Colors.red[100],
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Error: ${state.error}',
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ),
-                ),
-              _buildEntitiesList(state),
-            ],
-          ),
         );
       },
     );

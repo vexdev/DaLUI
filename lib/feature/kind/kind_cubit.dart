@@ -22,6 +22,8 @@ class KindCubit extends Cubit<KindState> {
       if (_kinds.isNotEmpty) {
         final storedKind = await _localstoreRepository.getSelectedKind();
         selectKind(storedKind ?? _kinds.first);
+      } else {
+        emit(KindState.empty());
       }
     });
   }
