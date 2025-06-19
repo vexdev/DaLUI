@@ -26,6 +26,7 @@ class KindScreen extends StatefulWidget implements AutoRouteWrapper {
 
 class _KindScreenState extends State<KindScreen> {
   String? selectedKind;
+  final ScrollController _hScrollCtrl = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +86,7 @@ class _KindScreenState extends State<KindScreen> {
                           ),
                         ),
                       ),
-                    _buildEntitiesList(state),
+                    Expanded(child: _buildEntitiesTable(state)),
                   ],
                 ),
         );
@@ -93,29 +94,31 @@ class _KindScreenState extends State<KindScreen> {
     );
   }
 
-  Widget _buildEntitiesList(KindState state) {
+  Widget _buildEntitiesTable(KindState state) {
     if (state.entities.isEmpty) {
       return const Center(child: Text('No entities found.'));
     }
     final columns = (["key", "actions"].followedBy(state.columns)).toList();
-    return Expanded(
-      child: SelectionArea(
+    return SelectionArea(
+      child: Scrollbar(
+        controller: _hScrollCtrl,
+        scrollbarOrientation: ScrollbarOrientation.bottom,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Table(
-              border: TableBorder.all(
-                borderRadius: BorderRadius.circular(8.0),
-                color: Theme.of(context).dividerColor,
-              ),
-              defaultColumnWidth: const IntrinsicColumnWidth(),
-              children: [
-                _buildHeaderRow(columns),
-                ...state.entities.map((entity) {
-                  return _buildEntityRow(columns, entity);
-                }),
-              ],
+          controller: _hScrollCtrl,
+          child: SingleChildScrollView(
+            child: DataTable(
+              columns: columns.map((column) {
+                return DataColumn(
+                  label: Text(
+                    column,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                );
+              }).toList(),
+              rows: state.entities.map((entity) {
+                return _buildEntityRow(columns, entity);
+              }).toList(),
             ),
           ),
         ),
@@ -123,91 +126,63 @@ class _KindScreenState extends State<KindScreen> {
     );
   }
 
-  TableRow _buildHeaderRow(List<String> columns) {
-    return TableRow(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
-        color: Theme.of(context).colorScheme.primaryContainer,
-      ),
-      children: columns.map((column) {
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Center(
-            child: Text(
-              column,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  TableRow _buildEntityRow(List<String> columns, Entity entity) {
-    return TableRow(
-      children: columns.map((column) {
+  DataRow _buildEntityRow(List<String> columns, Entity entity) {
+    return DataRow(
+      cells: columns.map((column) {
         if (column == 'key') return _buildKeyCell(entity);
         if (column == 'actions') return _buildActionsCell(entity);
         final value = entity.properties[column];
-        if (value == null) {
-          return Text(
-            'Not Set',
-            style: const TextStyle(fontStyle: FontStyle.italic),
-          );
-        }
+        if (value == null) return _buildNotSetCell();
         if (value is ValueEntity) return _buildEntityPropertyCell(value);
         return _buildOtherPropertyCell(value);
       }).toList(),
     );
   }
 
-  Widget _buildKeyCell(Entity entity) {
-    final keyName = entity.key?.path.first.name;
-    if (keyName == null) return const Text('No Key');
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(keyName, style: const TextStyle(fontWeight: FontWeight.bold)),
+  DataCell _buildNotSetCell() {
+    return const DataCell(
+      Text('Not Set', style: TextStyle(fontStyle: FontStyle.italic)),
     );
   }
 
-  Widget _buildActionsCell(Entity entity) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: () {
-            showConfirmationDialog(
-              context,
-              onConfirm: () {
-                context.read<KindCubit>().deleteEntity(entity.key!);
-              },
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          onPressed: null, // TODO: Implement edit functionality
-        ),
-      ],
+  DataCell _buildKeyCell(Entity entity) {
+    final keyName = entity.key?.path.first.name ?? 'No Key';
+    return DataCell(
+      Text(keyName, style: const TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 
-  Widget _buildEntityPropertyCell(ValueEntity value) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: EntityButton(value: value),
+  DataCell _buildActionsCell(Entity entity) {
+    return DataCell(
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              showConfirmationDialog(
+                context,
+                onConfirm: () {
+                  context.read<KindCubit>().deleteEntity(entity.key!);
+                },
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: null, // TODO: Implement edit functionality
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildOtherPropertyCell(Value value) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(value.readable),
-    );
+  DataCell _buildEntityPropertyCell(ValueEntity value) {
+    return DataCell(EntityButton(value: value));
+  }
+
+  DataCell _buildOtherPropertyCell(Value value) {
+    return DataCell(Text(value.readable));
   }
 
   void _selectKind(String? kind) {
