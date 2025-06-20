@@ -95,4 +95,13 @@ class KindCubit extends Cubit<KindState> {
       }
     });
   }
+
+  void deleteEntities(List<EntityKey> list) {
+    runOrError(() async {
+      await _datastoreRepository.delete(list);
+      if (state.selectedKind != null) {
+        selectKind(state.selectedKind!);
+      }
+    });
+  }
 }

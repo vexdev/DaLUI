@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:dalui/feature/kind/entity_button.dart';
 import 'package:dalui/feature/kind/kind_cubit.dart';
 import 'package:dalui/feature/kind/kind_state.dart';
@@ -27,12 +28,38 @@ class KindScreen extends StatefulWidget implements AutoRouteWrapper {
 class _KindScreenState extends State<KindScreen> {
   String? selectedKind;
   final ScrollController _hScrollCtrl = ScrollController();
+  List<bool> _selectedRows = [];
+  bool _showFooterButtons = false;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<KindCubit, KindState>(
       builder: (context, state) {
         return Scaffold(
+          persistentFooterButtons: !_showFooterButtons
+              ? null
+              : [
+                  FilledButton(
+                    onPressed: () {
+                      showConfirmationDialog(
+                        context,
+                        onConfirm: () {
+                          final selectedEntities = state.entities
+                              .where(
+                                (e) => _selectedRows[state.entities.indexOf(e)],
+                              )
+                              .toList();
+                          if (selectedEntities.isNotEmpty) {
+                            context.read<KindCubit>().deleteEntities(
+                              selectedEntities.map((e) => e.key!).toList(),
+                            );
+                          }
+                        },
+                      );
+                    },
+                    child: const Text('Delete'),
+                  ),
+                ],
           body: (state.isLoading)
               ? const Center(child: CircularProgressIndicator())
               : Column(
@@ -98,6 +125,9 @@ class _KindScreenState extends State<KindScreen> {
     if (state.entities.isEmpty) {
       return const Center(child: Text('No entities found.'));
     }
+    if (_selectedRows.length != state.entities.length) {
+      _selectedRows = List<bool>.filled(state.entities.length, false);
+    }
     final columns = (["key", "actions"].followedBy(state.columns)).toList();
     return SelectionArea(
       child: Scrollbar(
@@ -116,8 +146,8 @@ class _KindScreenState extends State<KindScreen> {
                   ),
                 );
               }).toList(),
-              rows: state.entities.map((entity) {
-                return _buildEntityRow(columns, entity);
+              rows: state.entities.mapIndexed((index, entity) {
+                return _buildEntityRow(columns, entity, index);
               }).toList(),
             ),
           ),
@@ -126,8 +156,21 @@ class _KindScreenState extends State<KindScreen> {
     );
   }
 
-  DataRow _buildEntityRow(List<String> columns, Entity entity) {
+  DataRow _buildEntityRow(List<String> columns, Entity entity, int index) {
     return DataRow(
+      selected: _selectedRows[index],
+      onSelectChanged: (selected) {
+        _selectRow(index, selected ?? false);
+      },
+      color: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+        if (states.contains(WidgetState.selected)) {
+          return Theme.of(context).colorScheme.surfaceContainerHighest;
+        }
+        if (index.isEven) {
+          return Theme.of(context).colorScheme.surfaceContainerHigh;
+        }
+        return null; // Use default color for unselected rows
+      }),
       cells: columns.map((column) {
         if (column == 'key') return _buildKeyCell(entity);
         if (column == 'actions') return _buildActionsCell(entity);
@@ -183,6 +226,18 @@ class _KindScreenState extends State<KindScreen> {
 
   DataCell _buildOtherPropertyCell(Value value) {
     return DataCell(Text(value.readable));
+  }
+
+  void _selectRow(int idx, bool selected) {
+    setState(() {
+      if (selected) {
+        _showFooterButtons = true;
+      }
+      _selectedRows[idx] = selected;
+      if (!selected && _selectedRows.where((s) => s).isEmpty) {
+        _showFooterButtons = false;
+      }
+    });
   }
 
   void _selectKind(String? kind) {
