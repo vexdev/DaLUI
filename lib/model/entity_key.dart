@@ -16,6 +16,10 @@ class EntityKey {
     final pathString = path.map((p) => '${p.kind}/${p.name}').join(',');
     return 'Key(project: $project, namespace: $namespace, database: $database, path: $pathString)';
   }
+
+  factory EntityKey.empty() {
+    return EntityKey(project: '', namespace: null, database: null, path: []);
+  }
 }
 
 class EntityKeyPath {

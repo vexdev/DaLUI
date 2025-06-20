@@ -6,7 +6,7 @@ part 'datastore_entity.g.dart';
 @JsonSerializable()
 class DatastoreEntity {
   final DatastoreKey? key;
-  final Map<String, DatastorePropertiesValue> properties;
+  final Map<String, DatastorePropertiesVal> properties;
 
   DatastoreEntity({required this.key, required this.properties});
   factory DatastoreEntity.fromJson(Map<String, dynamic> json) =>
@@ -14,8 +14,32 @@ class DatastoreEntity {
   Map<String, dynamic> toJson() => _$DatastoreEntityToJson(this);
 }
 
+abstract class DatastorePropertiesVal {
+  factory DatastorePropertiesVal.fromJson(Map<String, dynamic> json) {
+    if (json.containsKey('nullValue')) {
+      return DatastorePropertiesNullValue.fromJson(json);
+    } else {
+      return DatastorePropertiesValue.fromJson(json);
+    }
+  }
+  Map<String, dynamic> toJson();
+}
+
 @JsonSerializable()
-class DatastorePropertiesValue {
+class DatastorePropertiesNullValue implements DatastorePropertiesVal {
+  @JsonKey(includeIfNull: true)
+  final String? nullValue;
+
+  DatastorePropertiesNullValue({this.nullValue});
+
+  factory DatastorePropertiesNullValue.fromJson(Map<String, dynamic> json) =>
+      _$DatastorePropertiesNullValueFromJson(json);
+  @override
+  Map<String, dynamic> toJson() => _$DatastorePropertiesNullValueToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false)
+class DatastorePropertiesValue implements DatastorePropertiesVal {
   final String? nullValue;
   final String? stringValue;
   final String? integerValue;
@@ -45,6 +69,7 @@ class DatastorePropertiesValue {
   factory DatastorePropertiesValue.fromJson(Map<String, dynamic> json) =>
       _$DatastorePropertiesValueFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DatastorePropertiesValueToJson(this);
 }
 
@@ -62,7 +87,7 @@ class DatastoreLatLng {
 
 @JsonSerializable()
 class DatastoreArrayValue {
-  final List<DatastorePropertiesValue>? values;
+  final List<DatastorePropertiesVal>? values;
 
   DatastoreArrayValue({required this.values});
 

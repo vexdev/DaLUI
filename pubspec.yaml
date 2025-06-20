@@ -1,6 +1,6 @@
 name: dalui
 description: "Datastore Local User Interface"
-publish_to: 'none'
+publish_to: "none"
 version: 0.0.1+local
 
 environment:

@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:dalui/feature/kind/entity_button.dart';
+import 'package:dalui/feature/kind/entity_dialog.dart';
 import 'package:dalui/feature/kind/kind_cubit.dart';
 import 'package:dalui/feature/kind/kind_state.dart';
 import 'package:dalui/model/entity.dart';
@@ -176,7 +177,8 @@ class _KindScreenState extends State<KindScreen> {
         if (column == 'actions') return _buildActionsCell(entity);
         final value = entity.properties[column];
         if (value == null) return _buildNotSetCell();
-        if (value is ValueEntity) return _buildEntityPropertyCell(value);
+        if (value is ValueEntity)
+          return _buildEntityPropertyCell(entity, column, value);
         return _buildOtherPropertyCell(value);
       }).toList(),
     );
@@ -213,15 +215,42 @@ class _KindScreenState extends State<KindScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: null, // TODO: Implement edit functionality
+            onPressed: () async {
+              final context = this.context;
+              final updatedEntity = await showEntityDialog(
+                context,
+                value: entity,
+              );
+              if (!context.mounted || updatedEntity == null) return;
+              context.read<KindCubit>().updateEntity(entity, updatedEntity);
+            },
           ),
         ],
       ),
     );
   }
 
-  DataCell _buildEntityPropertyCell(ValueEntity value) {
-    return DataCell(EntityButton(value: value));
+  DataCell _buildEntityPropertyCell(
+    Entity parent,
+    String propName,
+    ValueEntity value,
+  ) {
+    return DataCell(
+      EntityButton(
+        value: value.entity,
+        onEntitySave: (updated) async {
+          final updatedValue = await updated;
+          final context = this.context;
+          if (updatedValue != null && context.mounted) {
+            context.read<KindCubit>().updateNestedEntity(
+              parent,
+              propName,
+              updatedValue,
+            );
+          }
+        },
+      ),
+    );
   }
 
   DataCell _buildOtherPropertyCell(Value value) {

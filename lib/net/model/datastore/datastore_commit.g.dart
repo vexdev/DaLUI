@@ -45,11 +45,11 @@ DatastoreMutation _$DatastoreMutationFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$DatastoreMutationToJson(DatastoreMutation instance) =>
     <String, dynamic>{
-      'propertyMask': instance.propertyMask,
-      'insert': instance.insert,
-      'update': instance.update,
-      'upsert': instance.upsert,
-      'delete': instance.delete,
+      if (instance.propertyMask case final value?) 'propertyMask': value,
+      if (instance.insert case final value?) 'insert': value,
+      if (instance.update case final value?) 'update': value,
+      if (instance.upsert case final value?) 'upsert': value,
+      if (instance.delete case final value?) 'delete': value,
     };
 
 DatastorePropertyMask _$DatastorePropertyMaskFromJson(

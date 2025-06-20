@@ -23,7 +23,7 @@ class DatastoreCommit {
 }
 
 // A mutation to apply to an entity.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class DatastoreMutation {
   final DatastorePropertyMask? propertyMask;
 

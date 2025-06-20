@@ -4,6 +4,33 @@ import 'package:dalui/model/entity_key.dart';
 abstract class Value {
   String get readable;
   ValueType get type;
+
+  factory Value.emptyValueOfType(ValueType type) {
+    switch (type) {
+      case ValueType.nullValue:
+        return const ValueNull();
+      case ValueType.string:
+        return ValueString('');
+      case ValueType.int:
+        return ValueInt(0);
+      case ValueType.double:
+        return ValueDouble(0.0);
+      case ValueType.bool:
+        return ValueBool(false);
+      case ValueType.timestamp:
+        return ValueTimestamp(DateTime.now());
+      case ValueType.key:
+        return ValueKey(EntityKey.empty());
+      case ValueType.blob:
+        return ValueBlob('');
+      case ValueType.geoPoint:
+        return ValueGeoPoint(0.0, 0.0);
+      case ValueType.entity:
+        return ValueEntity(Entity(key: EntityKey.empty(), properties: {}));
+      case ValueType.array:
+        return ValueArray([]);
+    }
+  }
 }
 
 class ValueNull implements Value {

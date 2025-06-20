@@ -7,13 +7,13 @@ This tool has been thought to be used in local development environments, where y
 ![Example](https://raw.githubusercontent.com/vexdev/dalui/main/example.png)
 
 # Known Limitations
-- Currently does not support editing (WiP).
+- Currently does not support editing of nested entities and of various complex property types (WiP).
 - Currently does not support pagination, all entities are loaded at once, may not be suitable for large datasets (WiP).
 - Firestore in datastore mode [does not currently support __kind__ queries](https://github.com/firebase/firebase-tools/issues/6903), therefore we need to query all entities and filter them in the client, this can be slow for large datasets.
 - Projections and COUNT(*) queries are not supported in datastore mode, so they will not work as expected.
 
 # Features
-- Visualize entities and their properties.
+- Visualize and edit entities and their properties.
 - Visualize nested entities and properties.
 - Delete entities.
 - Query entities using full GQL queries (with limitations).

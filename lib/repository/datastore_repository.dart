@@ -38,6 +38,33 @@ class DatastoreRepository {
       DatastoreCommit(mutations: deleteCommit.toList()),
     );
   }
+
+  Future<void> update(Entity oldEntity, Entity updatedEntity) async {
+    await _datastoreClient.commit(
+      DatastoreCommit(
+        mutations: [
+          DatastoreMutation(
+            propertyMask: DatastorePropertyMask(
+              paths: oldEntity.properties.keys
+                  .followedBy(updatedEntity.properties.keys)
+                  .toSet()
+                  .toList(),
+            ),
+            update: updatedEntity.datastoreEntity,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> insert(Iterable<Entity> entities) async {
+    final insertCommit = entities.map(
+      (entity) => DatastoreMutation(insert: entity.datastoreEntity),
+    );
+    await _datastoreClient.commit(
+      DatastoreCommit(mutations: insertCommit.toList()),
+    );
+  }
 }
 
 extension on DatastoreKey {
@@ -67,7 +94,20 @@ extension on EntityKey {
 extension on DatastoreEntity {
   Entity get entity => Entity(
     key: key?.entityKey,
-    properties: properties.map((key, value) => MapEntry(key, value.value)),
+    properties: properties.map(
+      (key, value) => value is DatastorePropertiesValue
+          ? MapEntry(key, value.value)
+          : MapEntry(key, ValueNull()),
+    ),
+  );
+}
+
+extension on Entity {
+  DatastoreEntity get datastoreEntity => DatastoreEntity(
+    key: key?.datastoreKey,
+    properties: properties.map(
+      (key, value) => MapEntry(key, value.datastoreValue),
+    ),
   );
 }
 
@@ -95,9 +135,61 @@ extension on DatastorePropertiesValue {
       return ValueEntity(entityValue!.entity);
     } else if (arrayValue != null) {
       return ValueArray(
-        arrayValue!.values?.map((val) => val.value).toList() ?? [],
+        arrayValue!.values
+                ?.map(
+                  (val) =>
+                      val is DatastorePropertiesValue ? val.value : ValueNull(),
+                )
+                .toList() ??
+            [],
       );
     }
     return ValueNull();
+  }
+}
+
+extension on Value {
+  DatastorePropertiesVal get datastoreValue {
+    if (this is ValueString) {
+      return DatastorePropertiesValue(stringValue: (this as ValueString).value);
+    } else if (this is ValueInt) {
+      return DatastorePropertiesValue(
+        integerValue: (this as ValueInt).value.toString(),
+      );
+    } else if (this is ValueDouble) {
+      return DatastorePropertiesValue(doubleValue: (this as ValueDouble).value);
+    } else if (this is ValueBool) {
+      return DatastorePropertiesValue(booleanValue: (this as ValueBool).value);
+    } else if (this is ValueTimestamp) {
+      return DatastorePropertiesValue(
+        timestampValue: (this as ValueTimestamp).value.toIso8601String(),
+      );
+    } else if (this is ValueKey) {
+      return DatastorePropertiesValue(
+        keyValue: (this as ValueKey).value.datastoreKey,
+      );
+    } else if (this is ValueBlob) {
+      return DatastorePropertiesValue(blobValue: (this as ValueBlob).value);
+    } else if (this is ValueGeoPoint) {
+      final geo = this as ValueGeoPoint;
+      return DatastorePropertiesValue(
+        geoPointValue: DatastoreLatLng(
+          latitude: geo.latitude,
+          longitude: geo.longitude,
+        ),
+      );
+    } else if (this is ValueEntity) {
+      return DatastorePropertiesValue(
+        entityValue: (this as ValueEntity).entity.datastoreEntity,
+      );
+    } else if (this is ValueArray) {
+      final array = this as ValueArray;
+      return DatastorePropertiesValue(
+        arrayValue: DatastoreArrayValue(
+          values: array.values.map((v) => v.datastoreValue).toList(),
+        ),
+      );
+    }
+    return DatastorePropertiesNullValue();
   }
 }

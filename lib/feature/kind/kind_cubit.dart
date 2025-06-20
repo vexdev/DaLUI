@@ -1,4 +1,5 @@
 import 'package:dalui/feature/kind/kind_state.dart';
+import 'package:dalui/model/entity.dart';
 import 'package:dalui/model/entity_key.dart';
 import 'package:dalui/net/datastore_error.dart';
 import 'package:dalui/repository/datastore_repository.dart';
@@ -102,6 +103,21 @@ class KindCubit extends Cubit<KindState> {
       if (state.selectedKind != null) {
         selectKind(state.selectedKind!);
       }
+    });
+  }
+
+  void updateEntity(Entity initialEntity, Entity updatedEntity) {
+    runOrError(() async {
+      await _datastoreRepository.update(initialEntity, updatedEntity);
+      if (state.selectedKind != null) {
+        selectKind(state.selectedKind!);
+      }
+    });
+  }
+
+  void updateNestedEntity(Entity parent, String propName, Entity updatedValue) {
+    runOrError(() async {
+      // TODO: Not implemented yet
     });
   }
 }
