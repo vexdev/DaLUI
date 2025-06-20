@@ -246,7 +246,6 @@ class _KindScreenState extends State<KindScreen> {
               final updatedEntity = await showEditEntityDialog(
                 context,
                 value: entity,
-                kind: selectedKind!,
               );
               if (!context.mounted || updatedEntity == null) return;
               context.read<KindCubit>().updateEntity(entity, updatedEntity);
@@ -278,7 +277,6 @@ class _KindScreenState extends State<KindScreen> {
     return DataCell(
       EntityButton(
         value: value.entity,
-        kind: value.entity.key?.path.first.kind ?? 'Unknown',
         onEntitySave: (updated) async {
           final updatedValue = await updated;
           final context = this.context;

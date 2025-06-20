@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:dalui/dalui_config.dart';
-import 'package:dalui/feature/kind/entity_button.dart';
+import 'package:dalui/feature/kind/property_editor.dart';
 import 'package:dalui/model/entity.dart';
 import 'package:dalui/model/entity_key.dart';
 import 'package:dalui/model/value.dart';
@@ -10,24 +10,30 @@ import 'package:provider/provider.dart';
 class EntityDialog extends StatefulWidget {
   final EntityKey? _initialKey;
   final Map<String, Value>? _initialProperties;
-  final String _kind;
+  final String? _kind;
   final bool _nested;
   final bool _isCreate;
 
   // Constructor that initializes the dialog with an optional Entity value.
   // If no value is provided, it will create a new Entity with an empty key
   // and properties.
-  const EntityDialog._({
+  EntityDialog._({
     EntityKey? entityKey,
     Map<String, Value>? properties,
-    required String kind,
+    String? kind,
     required bool nested,
     required bool isCreate,
   }) : _initialKey = entityKey,
        _initialProperties = properties,
        _nested = nested,
        _kind = kind,
-       _isCreate = isCreate;
+       _isCreate = isCreate {
+    // Kind cannot be null if isCreate is true.
+    assert(
+      !isCreate || (kind != null && kind.isNotEmpty),
+      'Kind must be provided for creating a new entity.',
+    );
+  }
 
   @override
   State<EntityDialog> createState() => _EntityDialogState();
@@ -38,7 +44,6 @@ class EntityDialog extends StatefulWidget {
 Future<Entity?> showEditEntityDialog(
   BuildContext context, {
   required Entity value,
-  required String kind,
   bool nested = false,
 }) {
   return showDialog<Entity?>(
@@ -46,7 +51,6 @@ Future<Entity?> showEditEntityDialog(
     builder: (context) => EntityDialog._(
       entityKey: value.key,
       properties: value.properties,
-      kind: kind,
       nested: nested,
       isCreate: false,
     ),
@@ -90,7 +94,6 @@ Future<Entity?> showCreateEntityDialog(
 
 class _EntityDialogState extends State<EntityDialog> {
   final _scrollController = ScrollController();
-  final Map<String, TextEditingController> _textControllers = {};
   final TextEditingController _keyController = TextEditingController();
   final TextEditingController _pathController = TextEditingController();
 
@@ -121,7 +124,7 @@ class _EntityDialogState extends State<EntityDialog> {
                 setState(() {
                   _entityKey = EntityKey(
                     project: config.projectId,
-                    path: [EntityKeyPath(kind: widget._kind, name: newPath)],
+                    path: [EntityKeyPath(kind: widget._kind!, name: newPath)],
                   );
                 });
               },
@@ -207,7 +210,17 @@ class _EntityDialogState extends State<EntityDialog> {
       cells: [
         DataCell(Text(key)),
         DataCell(_buildPropertyType(key, val)),
-        DataCell(_buildPropertyValue(key, val)),
+        DataCell(
+          PropertyEditor(
+            propertyKey: key,
+            value: val,
+            onValueChanged: (propertyKey, newValue) {
+              setState(() {
+                _properties[propertyKey] = newValue;
+              });
+            },
+          ),
+        ),
         DataCell(
           IconButton(
             icon: const Icon(Icons.delete),
@@ -224,73 +237,6 @@ class _EntityDialogState extends State<EntityDialog> {
     setState(() {
       _properties.remove(key);
     });
-  }
-
-  Widget _buildPropertyValue(String key, Value value) {
-    switch (value.type) {
-      case ValueType.string:
-        return TextField(
-          controller: _textControllers.putIfAbsent(
-            key,
-            () => TextEditingController(text: value.readable),
-          ),
-          onChanged: (newValue) {
-            setState(() {
-              _properties[key] = ValueString(newValue);
-            });
-          },
-        );
-      case ValueType.int:
-        return TextField(
-          controller: _textControllers.putIfAbsent(
-            key,
-            () => TextEditingController(text: value.readable),
-          ),
-          onChanged: (newValue) {
-            setState(() {
-              _properties[key] = ValueInt(int.tryParse(newValue) ?? 0);
-            });
-          },
-        );
-      case ValueType.double:
-        return TextField(
-          controller: _textControllers.putIfAbsent(
-            key,
-            () => TextEditingController(text: value.readable),
-          ),
-          onChanged: (newValue) {
-            setState(() {
-              _properties[key] = ValueDouble(double.tryParse(newValue) ?? 0.0);
-            });
-          },
-        );
-      case ValueType.bool:
-        return Switch(
-          value: value.readable.toLowerCase() == 'true',
-          onChanged: (newValue) {
-            setState(() {
-              _properties[key] = ValueBool(newValue);
-            });
-          },
-        );
-      case ValueType.nullValue:
-        return const Text('null');
-      case ValueType.entity:
-        return EntityButton(
-          value: (value as ValueEntity).entity,
-          kind: widget._kind,
-          onEntitySave: (future) async {
-            final updated = await future;
-            if (updated != null) {
-              setState(() {
-                _properties[key] = ValueEntity(updated);
-              });
-            }
-          },
-        );
-      default:
-        return Text(value.readable);
-    }
   }
 
   DropdownButtonHideUnderline _buildPropertyType(String key, Value value) {

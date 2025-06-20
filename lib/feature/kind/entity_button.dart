@@ -5,15 +5,12 @@ import 'package:flutter/material.dart';
 class EntityButton extends StatelessWidget {
   final Entity _value;
   final Function(Future<Entity?>) _onEntitySave;
-  final String _kind;
 
   const EntityButton({
     super.key,
     required Entity value,
-    required String kind,
     required Function(Future<Entity?>) onEntitySave,
   }) : _value = value,
-       _kind = kind,
        _onEntitySave = onEntitySave;
 
   @override
@@ -22,12 +19,7 @@ class EntityButton extends StatelessWidget {
       label: Text("Entity"),
       onPressed: () {
         _onEntitySave(
-          showEditEntityDialog(
-            context,
-            value: _value,
-            kind: _kind,
-            nested: true,
-          ),
+          showEditEntityDialog(context, value: _value, nested: true),
         );
       },
     );
