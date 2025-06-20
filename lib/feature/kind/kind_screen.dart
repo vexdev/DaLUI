@@ -8,6 +8,7 @@ import 'package:dalui/model/entity.dart';
 import 'package:dalui/model/value.dart';
 import 'package:dalui/widget/confirmation_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 @RoutePage()
@@ -129,7 +130,7 @@ class _KindScreenState extends State<KindScreen> {
     if (_selectedRows.length != state.entities.length) {
       _selectedRows = List<bool>.filled(state.entities.length, false);
     }
-    final columns = (["key", "actions"].followedBy(state.columns)).toList();
+    final columns = (["actions", "key"].followedBy(state.columns)).toList();
     return SelectionArea(
       child: Scrollbar(
         controller: _hScrollCtrl,
@@ -177,8 +178,9 @@ class _KindScreenState extends State<KindScreen> {
         if (column == 'actions') return _buildActionsCell(entity);
         final value = entity.properties[column];
         if (value == null) return _buildNotSetCell();
-        if (value is ValueEntity)
+        if (value is ValueEntity) {
           return _buildEntityPropertyCell(entity, column, value);
+        }
         return _buildOtherPropertyCell(value);
       }).toList(),
     );
@@ -193,7 +195,18 @@ class _KindScreenState extends State<KindScreen> {
   DataCell _buildKeyCell(Entity entity) {
     final keyName = entity.key?.path.first.name ?? 'No Key';
     return DataCell(
-      Text(keyName, style: const TextStyle(fontWeight: FontWeight.bold)),
+      InkWell(
+        onTap: () {
+          Clipboard.setData(ClipboardData(text: keyName));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
+        },
+        child: Text(
+          keyName,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
     );
   }
 
@@ -254,7 +267,17 @@ class _KindScreenState extends State<KindScreen> {
   }
 
   DataCell _buildOtherPropertyCell(Value value) {
-    return DataCell(Text(value.readable));
+    return DataCell(
+      InkWell(
+        onTap: () {
+          Clipboard.setData(ClipboardData(text: value.readable));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
+        },
+        child: Text(value.readable),
+      ),
+    );
   }
 
   void _selectRow(int idx, bool selected) {
