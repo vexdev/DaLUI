@@ -6,7 +6,7 @@ part 'datastore_entity.g.dart';
 @JsonSerializable()
 class DatastoreEntity {
   final DatastoreKey? key;
-  final Map<String, DatastorePropertiesVal> properties;
+  final Map<String, DatastorePropertiesVal>? properties;
 
   DatastoreEntity({required this.key, required this.properties});
   factory DatastoreEntity.fromJson(Map<String, dynamic> json) =>

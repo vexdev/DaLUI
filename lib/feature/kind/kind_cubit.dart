@@ -115,6 +115,15 @@ class KindCubit extends Cubit<KindState> {
     });
   }
 
+  void insertEntity(Entity entity) {
+    runOrError(() async {
+      await _datastoreRepository.insert([entity]);
+      if (state.selectedKind != null) {
+        selectKind(state.selectedKind!);
+      }
+    });
+  }
+
   void updateNestedEntity(Entity parent, String propName, Entity updatedValue) {
     runOrError(() async {
       // TODO: Not implemented yet

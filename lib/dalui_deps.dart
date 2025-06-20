@@ -20,6 +20,7 @@ class DaluiDeps {
 
     return DaluiDeps._(
       providers: [
+        RepositoryProvider.value(value: config),
         RepositoryProvider.value(value: DatastoreRepository(client)),
         RepositoryProvider.value(
           value: LocalstoreRepository(sharedPreferences),

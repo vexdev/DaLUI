@@ -59,7 +59,12 @@ class DatastoreRepository {
 
   Future<void> insert(Iterable<Entity> entities) async {
     final insertCommit = entities.map(
-      (entity) => DatastoreMutation(insert: entity.datastoreEntity),
+      (entity) => DatastoreMutation(
+        propertyMask: DatastorePropertyMask(
+          paths: entity.properties.keys.toList(),
+        ),
+        insert: entity.datastoreEntity,
+      ),
     );
     await _datastoreClient.commit(
       DatastoreCommit(mutations: insertCommit.toList()),
@@ -94,11 +99,13 @@ extension on EntityKey {
 extension on DatastoreEntity {
   Entity get entity => Entity(
     key: key?.entityKey,
-    properties: properties.map(
-      (key, value) => value is DatastorePropertiesValue
-          ? MapEntry(key, value.value)
-          : MapEntry(key, ValueNull()),
-    ),
+    properties:
+        properties?.map(
+          (key, value) => value is DatastorePropertiesValue
+              ? MapEntry(key, value.value)
+              : MapEntry(key, ValueNull()),
+        ) ??
+        <String, Value>{},
   );
 }
 

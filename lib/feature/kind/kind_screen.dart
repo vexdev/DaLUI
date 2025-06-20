@@ -37,7 +37,20 @@ class _KindScreenState extends State<KindScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<KindCubit, KindState>(
       builder: (context, state) {
+        if (state.selectedKind != null) selectedKind = state.selectedKind;
         return Scaffold(
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              final context = this.context;
+              final newEntity = await showCreateEntityDialog(
+                context,
+                kind: selectedKind!,
+              );
+              if (!context.mounted || newEntity == null) return;
+              context.read<KindCubit>().insertEntity(newEntity);
+            },
+            child: const Icon(Icons.add),
+          ),
           persistentFooterButtons: !_showFooterButtons
               ? null
               : [
@@ -230,12 +243,26 @@ class _KindScreenState extends State<KindScreen> {
             icon: const Icon(Icons.edit),
             onPressed: () async {
               final context = this.context;
-              final updatedEntity = await showEntityDialog(
+              final updatedEntity = await showEditEntityDialog(
                 context,
                 value: entity,
+                kind: selectedKind!,
               );
               if (!context.mounted || updatedEntity == null) return;
               context.read<KindCubit>().updateEntity(entity, updatedEntity);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.copy),
+            onPressed: () async {
+              final context = this.context;
+              final newEntity = await showCloneEntityDialog(
+                context,
+                value: entity,
+                kind: selectedKind!,
+              );
+              if (!context.mounted || newEntity == null) return;
+              context.read<KindCubit>().insertEntity(newEntity);
             },
           ),
         ],
@@ -251,6 +278,7 @@ class _KindScreenState extends State<KindScreen> {
     return DataCell(
       EntityButton(
         value: value.entity,
+        kind: value.entity.key?.path.first.kind ?? 'Unknown',
         onEntitySave: (updated) async {
           final updatedValue = await updated;
           final context = this.context;

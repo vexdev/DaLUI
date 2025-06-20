@@ -5,7 +5,7 @@ abstract class Value {
   String get readable;
   ValueType get type;
 
-  factory Value.emptyValueOfType(ValueType type) {
+  factory Value.emptyValueOfType(ValueType type, String projectId) {
     switch (type) {
       case ValueType.nullValue:
         return const ValueNull();
@@ -20,13 +20,15 @@ abstract class Value {
       case ValueType.timestamp:
         return ValueTimestamp(DateTime.now());
       case ValueType.key:
-        return ValueKey(EntityKey.empty());
+        return ValueKey(EntityKey.empty(projectId));
       case ValueType.blob:
         return ValueBlob('');
       case ValueType.geoPoint:
         return ValueGeoPoint(0.0, 0.0);
       case ValueType.entity:
-        return ValueEntity(Entity(key: EntityKey.empty(), properties: {}));
+        return ValueEntity(
+          Entity(key: EntityKey.empty(projectId), properties: {}),
+        );
       case ValueType.array:
         return ValueArray([]);
     }

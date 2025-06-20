@@ -11,7 +11,7 @@ DatastoreEntity _$DatastoreEntityFromJson(Map<String, dynamic> json) =>
       key: json['key'] == null
           ? null
           : DatastoreKey.fromJson(json['key'] as Map<String, dynamic>),
-      properties: (json['properties'] as Map<String, dynamic>).map(
+      properties: (json['properties'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(
           k,
           DatastorePropertiesVal.fromJson(e as Map<String, dynamic>),

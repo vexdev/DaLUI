@@ -17,8 +17,14 @@ class EntityKey {
     return 'Key(project: $project, namespace: $namespace, database: $database, path: $pathString)';
   }
 
-  factory EntityKey.empty() {
-    return EntityKey(project: '', namespace: null, database: null, path: []);
+  factory EntityKey.empty(String project) {
+    // Creates an empty EntityKey with the specified project and no path.
+    return EntityKey(
+      project: project,
+      namespace: null,
+      database: null,
+      path: [],
+    );
   }
 }
 
