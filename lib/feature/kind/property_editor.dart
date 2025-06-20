@@ -1,3 +1,4 @@
+import 'package:dalui/feature/kind/array_dialog.dart';
 import 'package:dalui/feature/kind/entity_button.dart';
 import 'package:dalui/model/value.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +78,19 @@ class _PropertyEditorState extends State<PropertyEditor> {
               _changed(ValueEntity(updated));
             }
           },
+        );
+      case ValueType.array:
+        return ElevatedButton(
+          onPressed: () async {
+            final values = await showArrayDialog(
+              context,
+              values: (widget.value as ValueArray).values,
+            );
+            if (values != null) {
+              _changed(ValueArray(values));
+            }
+          },
+          child: Text(widget.value.readable),
         );
       default:
         return Text(widget.value.readable);

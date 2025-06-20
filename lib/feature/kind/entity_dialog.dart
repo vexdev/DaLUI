@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:dalui/dalui_config.dart';
 import 'package:dalui/feature/kind/property_editor.dart';
+import 'package:dalui/feature/kind/property_type_editor.dart';
 import 'package:dalui/model/entity.dart';
 import 'package:dalui/model/entity_key.dart';
 import 'package:dalui/model/value.dart';
@@ -209,7 +210,17 @@ class _EntityDialogState extends State<EntityDialog> {
     return DataRow(
       cells: [
         DataCell(Text(key)),
-        DataCell(_buildPropertyType(key, val)),
+        DataCell(
+          PropertyTypeEditor(
+            propertyKey: key,
+            value: val,
+            onTypeChanged: (propertyKey, newValue) {
+              setState(() {
+                _properties[propertyKey] = newValue;
+              });
+            },
+          ),
+        ),
         DataCell(
           PropertyEditor(
             propertyKey: key,
@@ -237,29 +248,5 @@ class _EntityDialogState extends State<EntityDialog> {
     setState(() {
       _properties.remove(key);
     });
-  }
-
-  DropdownButtonHideUnderline _buildPropertyType(String key, Value value) {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<ValueType>(
-        value: value.type,
-        items: ValueType.values.map((type) {
-          return DropdownMenuItem<ValueType>(
-            value: type,
-            child: Text(type.name),
-          );
-        }).toList(),
-        onChanged: (newType) {
-          if (newType != null) {
-            setState(() {
-              _properties[key] = Value.emptyValueOfType(
-                newType,
-                config.projectId,
-              );
-            });
-          }
-        },
-      ),
-    );
   }
 }
